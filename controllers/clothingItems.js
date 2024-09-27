@@ -1,21 +1,23 @@
+const e = require("express");
 const ClothingItem = require("../models/clothingItem");
+const mongoose = require("mongoose");
+const { badRequest, notFound, internalServer } = require("../utils/errors");
 
 const createItem = (req, res) => {
-  console.log(res);
-  console.log(req.body);
-
   const { name, weather, imageUrl } = req.body;
 
   ClothingItem.create({ name, weather, imageUrl })
-    .then((item) => {
-      console.log(item);
-      res.status(201).send({ data: item });
-    })
-    .catch((e) => {
-      console.error(e);
+    .then((item) => res.status(201).send({ data: item }))
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "ValidationError") {
+        return res
+          .status(badRequest)
+          .send({ message: "Validation error", error: err.message });
+      }
       res
-        .status(500)
-        .send({ message: "Error came from createItem", error: e.message });
+        .status(internalServer)
+        .send({ message: "Error retrieving items", error: err.message });
     });
 };
 
@@ -24,11 +26,17 @@ const getItems = (req, res) => {
     .then((items) => {
       res.status(200).send(items);
     })
-    .catch((e) => {
-      console.error(e);
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "CastError") {
+        return res.status(badRequest).send({ message: "Invalid ID format" });
+      }
+      if (err.message === "ItemNotFound") {
+        return res.status(notFound).send({ message: "Item not found" });
+      }
       res
-        .status(500)
-        .send({ message: "Error came from getItems", error: e.message });
+        .status(internalServer)
+        .send({ message: "Error retrieving items", error: err.message });
     });
 };
 
@@ -44,13 +52,17 @@ const updateItem = (req, res) => {
     .catch((e) => {
       console.error(e);
       res
-        .status(500)
+        .status(internalServer)
         .send({ message: "Error came from updateItems", error: e.message });
     });
 };
 
 const deleteItem = (req, res) => {
   const { id: itemId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return res.status(badRequest).send({ message: "Invalid item ID format" });
+  }
 
   ClothingItem.findByIdAndDelete(itemId)
     .orFail(new Error("ItemNotFound"))
@@ -60,11 +72,12 @@ const deleteItem = (req, res) => {
         .send({ message: "Item deleted successfully", data: item });
     })
     .catch((err) => {
+      console.error(err);
       if (err.message === "ItemNotFound") {
-        return res.status(404).send({ message: "Item not found" });
+        return res.status(notFound).send({ message: "Item not found" });
       }
       res
-        .status(500)
+        .status(internalServer)
         .send({ message: "Error deleting item", error: err.message });
     });
 };
@@ -72,32 +85,46 @@ const deleteItem = (req, res) => {
 const likeItem = (req, res) => {
   const { itemId } = req.params;
 
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return res.status(badRequest).send({ message: "Invalid item ID format" });
+  }
+
   ClothingItem.findByIdAndUpdate(itemId, { $inc: { likes: 1 } }, { new: true })
     .orFail()
     .then((item) => {
       res.status(200).send({ data: item });
     })
-    .catch((e) => {
-      console.error(e);
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(notFound).send({ message: "Item not found" });
+      }
       res
-        .status(500)
-        .send({ message: "Error updating likes", error: e.message });
+        .status(internalServer)
+        .send({ message: "Error updating likes", error: err.message });
     });
 };
 
 const dislikeItem = (req, res) => {
   const { itemId } = req.params;
 
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return res.status(badRequest).send({ message: "Invalid item ID format" });
+  }
+
   ClothingItem.findByIdAndUpdate(itemId, { $inc: { likes: -1 } }, { new: true })
     .orFail()
     .then((item) => {
       res.status(200).send({ data: item });
     })
-    .catch((e) => {
-      console.error(e);
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(notFound).send({ message: "Item not found" });
+      }
       res
-        .status(500)
-        .send({ message: "Error updating likes", error: e.message });
+        .status(internalServer)
+        .send({ message: "Error updating likes", error: err.message });
     });
 };
 
