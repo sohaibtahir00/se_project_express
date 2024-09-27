@@ -7,7 +7,7 @@ const getUsers = (req, res) =>
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.log(err);
-      res.status(internalServer).send({ message: err.message });
+      return res.status(internalServer).send({ message: err.message });
     });
 
 const createUser = (req, res) => {
@@ -20,7 +20,7 @@ const createUser = (req, res) => {
       if (err.name === "ValidationError") {
         return res.status(badRequest).send({ message: err.message });
       }
-      res.status(internalServer).send({ message: err.message });
+      return res.status(internalServer).send({ message: err.message });
     });
 };
 
@@ -39,7 +39,7 @@ const getUser = (req, res) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(notFound).send({ message: "User not found" });
       }
-      res.status(internalServer).send({ message: err.message });
+      return res.status(internalServer).send({ message: err.message });
     });
 };
 
