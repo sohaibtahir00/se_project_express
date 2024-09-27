@@ -20,8 +20,8 @@ const createItem = (req, res) => {
     });
 };
 
-const getItems = (req, res) => {
-  return ClothingItem.find({})
+const getItems = (req, res) =>
+  ClothingItem.find({})
     .then((items) => res.status(200).send(items))
     .catch((err) => {
       console.error(err);
@@ -35,7 +35,6 @@ const getItems = (req, res) => {
         .status(internalServer)
         .send({ message: "Error retrieving items", error: err.message });
     });
-};
 
 const updateItem = (req, res) => {
   const { itemId } = req.params;

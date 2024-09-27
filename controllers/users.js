@@ -2,14 +2,13 @@ const mongoose = require("mongoose");
 const User = require("../models/user");
 const { badRequest, notFound, internalServer } = require("../utils/errors");
 
-const getUsers = (req, res) => {
-  return User.find({})
+const getUsers = (req, res) =>
+  User.find({})
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.log(err);
-      return res.status(internalServer).send({ message: err.message });
+      res.status(internalServer).send({ message: err.message });
     });
-};
 
 const createUser = (req, res) => {
   const { name, avatar } = req.body;
@@ -21,7 +20,7 @@ const createUser = (req, res) => {
       if (err.name === "ValidationError") {
         return res.status(badRequest).send({ message: err.message });
       }
-      return res.status(internalServer).send({ message: err.message });
+      res.status(internalServer).send({ message: err.message });
     });
 };
 
@@ -40,7 +39,7 @@ const getUser = (req, res) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(notFound).send({ message: "User not found" });
       }
-      return res.status(internalServer).send({ message: err.message });
+      res.status(internalServer).send({ message: err.message });
     });
 };
 
