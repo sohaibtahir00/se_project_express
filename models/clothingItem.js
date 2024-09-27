@@ -21,6 +21,7 @@ const clothingItem = new mongoose.Schema({
       },
       message: "You must enter a valid URL",
     },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
   },
 });
 

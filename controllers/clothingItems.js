@@ -50,16 +50,62 @@ const updateItem = (req, res) => {
 };
 
 const deleteItem = (req, res) => {
-  const { itemId } = req.params;
+  const { id: itemId } = req.params;
 
-  ClothingItems.findByIdAndDelete(itemId)
-    .orFail()
+  ClothingItem.findByIdAndDelete(itemId)
+    .orFail(new Error("ItemNotFound"))
     .then((item) => {
-      res.status(204).send({});
+      res
+        .status(200)
+        .send({ message: "Item deleted successfully", data: item });
     })
-    .catch((e) => {
-      res.status(500).send({ message: "Error came from deleteItems", e });
+    .catch((err) => {
+      if (err.message === "ItemNotFound") {
+        return res.status(404).send({ message: "Item not found" });
+      }
+      res
+        .status(500)
+        .send({ message: "Error deleting item", error: err.message });
     });
 };
 
-module.exports = { createItem, getItems, updateItem, deleteItem };
+const likeItem = (req, res) => {
+  const { itemId } = req.params;
+
+  ClothingItem.findByIdAndUpdate(itemId, { $inc: { likes: 1 } }, { new: true })
+    .orFail()
+    .then((item) => {
+      res.status(200).send({ data: item });
+    })
+    .catch((e) => {
+      console.error(e);
+      res
+        .status(500)
+        .send({ message: "Error updating likes", error: e.message });
+    });
+};
+
+const dislikeItem = (req, res) => {
+  const { itemId } = req.params;
+
+  ClothingItem.findByIdAndUpdate(itemId, { $inc: { likes: -1 } }, { new: true })
+    .orFail()
+    .then((item) => {
+      res.status(200).send({ data: item });
+    })
+    .catch((e) => {
+      console.error(e);
+      res
+        .status(500)
+        .send({ message: "Error updating likes", error: e.message });
+    });
+};
+
+module.exports = {
+  createItem,
+  getItems,
+  updateItem,
+  deleteItem,
+  likeItem,
+  dislikeItem,
+};
