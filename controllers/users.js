@@ -1,9 +1,9 @@
-const User = require("../models/user");
 const mongoose = require("mongoose");
+const User = require("../models/user");
 const { badRequest, notFound, internalServer } = require("../utils/errors");
 
 const getUsers = (req, res) => {
-  User.find({})
+  return User.find({})
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.log(err);
@@ -14,10 +14,8 @@ const getUsers = (req, res) => {
 const createUser = (req, res) => {
   const { name, avatar } = req.body;
 
-  User.create({ name, avatar })
-    .then((user) => {
-      res.status(201).send(user);
-    })
+  return User.create({ name, avatar })
+    .then((user) => res.status(201).send(user))
     .catch((err) => {
       console.log(err);
       if (err.name === "ValidationError") {
@@ -34,7 +32,7 @@ const getUser = (req, res) => {
     return res.status(badRequest).send({ message: "Invalid user ID format" });
   }
 
-  User.findById(userId)
+  return User.findById(userId)
     .orFail()
     .then((user) => res.status(200).send(user))
     .catch((err) => {
