@@ -5,7 +5,7 @@ const { badRequest, notFound, internalServer } = require("../utils/errors");
 const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
 
-  return ClothingItem.create({ name, weather, imageUrl, owner: req.user._id }) // eslint-disable-line no-underscore-dangle
+  return ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       console.error(err);
@@ -66,7 +66,7 @@ const likeItem = (req, res) => {
 
   return ClothingItem.findByIdAndUpdate(
     itemId,
-    { $addToSet: { likes: req.user._id } }, // eslint-disable-line no-underscore-dangle
+    { $addToSet: { likes: req.user._id } },
     { new: true }
   )
     .orFail()
@@ -91,7 +91,7 @@ const dislikeItem = (req, res) => {
 
   return ClothingItem.findByIdAndUpdate(
     itemId,
-    { $pull: { likes: req.user._id } }, // eslint-disable-line no-underscore-dangle
+    { $pull: { likes: req.user._id } },
     { new: true }
   )
     .orFail()
