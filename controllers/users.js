@@ -7,7 +7,9 @@ const getUsers = (req, res) =>
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.log(err);
-      return res.status(internalServer).send({ message: err.message });
+      return res
+        .status(internalServer)
+        .send({ message: "An error has occurred on the server" });
     });
 
 const createUser = (req, res) => {
@@ -18,9 +20,11 @@ const createUser = (req, res) => {
     .catch((err) => {
       console.log(err);
       if (err.name === "ValidationError") {
-        return res.status(badRequest).send({ message: err.message });
+        return res.status(badRequest).send({ message: "Validation error" });
       }
-      return res.status(internalServer).send({ message: err.message });
+      return res
+        .status(internalServer)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -39,7 +43,9 @@ const getUser = (req, res) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(notFound).send({ message: "User not found" });
       }
-      return res.status(internalServer).send({ message: err.message });
+      return res
+        .status(internalServer)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 

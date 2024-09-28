@@ -5,18 +5,16 @@ const { badRequest, notFound, internalServer } = require("../utils/errors");
 const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
 
-  return ClothingItem.create({ name, weather, imageUrl })
+  return ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res
-          .status(badRequest)
-          .send({ message: "Validation error", error: err.message });
+        return res.status(badRequest).send({ message: "Validation error" });
       }
       return res
         .status(internalServer)
-        .send({ message: "Error retrieving items", error: err.message });
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -33,27 +31,8 @@ const getItems = (req, res) =>
       }
       return res
         .status(internalServer)
-        .send({ message: "Error retrieving items", error: err.message });
+        .send({ message: "An error has occurred on the server" });
     });
-
-const updateItem = (req, res) => {
-  const { itemId } = req.params;
-  const { imageUrl } = req.body;
-
-  return ClothingItem.findByIdAndUpdate(
-    itemId,
-    { $set: { imageUrl } },
-    { new: true }
-  )
-    .orFail()
-    .then((item) => res.status(200).send({ data: item }))
-    .catch((err) => {
-      console.error(err);
-      return res
-        .status(internalServer)
-        .send({ message: "Error came from updateItems", error: err.message });
-    });
-};
 
 const deleteItem = (req, res) => {
   const { id: itemId } = req.params;
@@ -74,7 +53,7 @@ const deleteItem = (req, res) => {
       }
       return res
         .status(internalServer)
-        .send({ message: "Error deleting item", error: err.message });
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -87,7 +66,7 @@ const likeItem = (req, res) => {
 
   return ClothingItem.findByIdAndUpdate(
     itemId,
-    { $inc: { likes: 1 } },
+    { $addToSet: { likes: req.user._id } },
     { new: true }
   )
     .orFail()
@@ -99,7 +78,7 @@ const likeItem = (req, res) => {
       }
       return res
         .status(internalServer)
-        .send({ message: "Error updating likes", error: err.message });
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -112,7 +91,7 @@ const dislikeItem = (req, res) => {
 
   return ClothingItem.findByIdAndUpdate(
     itemId,
-    { $inc: { likes: -1 } },
+    { $pull: { likes: req.user._id } },
     { new: true }
   )
     .orFail()
@@ -124,14 +103,13 @@ const dislikeItem = (req, res) => {
       }
       return res
         .status(internalServer)
-        .send({ message: "Error updating likes", error: err.message });
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
 module.exports = {
   createItem,
   getItems,
-  updateItem,
   deleteItem,
   likeItem,
   dislikeItem,
