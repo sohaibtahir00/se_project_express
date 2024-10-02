@@ -10,13 +10,12 @@ const auth = (req, res, next) => {
   }
 
   return jwt.verify(token, JWT_SECRET, (err, payload) => {
-    // Added return here
     if (err) {
       return res.status(unauthorized).send({ message: "Invalid token" });
     }
 
     req.user = payload;
-    next();
+    return next();
   });
 };
 

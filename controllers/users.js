@@ -22,7 +22,7 @@ const createUser = (req, res) => {
     return res.status(badRequest).send({ message: "All fields are required" });
   }
 
-  User.findOne({ email })
+  return User.findOne({ email })
     .then((existingUser) => {
       if (existingUser) {
         return res
