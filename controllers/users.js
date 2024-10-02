@@ -41,9 +41,8 @@ const createUser = (req, res) => {
       if (user) {
         const userData = user.toObject();
         const { password, ...responseData } = userData;
-        return res.status(201).send(responseData);
+        res.status(201).send(responseData);
       }
-      return;
     })
     .catch((err) => {
       if (res.headersSent) {
@@ -72,13 +71,10 @@ const login = (req, res) => {
 
   return User.findUserByCredentials(email, loginPassword)
     .then((user) => {
-      if (user) {
-        const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-          expiresIn: "7d",
-        });
-        return res.status(200).send({ token });
-      }
-      return;
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      return res.status(200).send({ token });
     })
     .catch((err) => {
       console.log(err);
@@ -106,7 +102,6 @@ const getUser = (req, res) => {
       return res
         .status(internalServer)
         .send({ message: "An error has occurred on the server" });
-      return;
     });
 };
 
