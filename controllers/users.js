@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
-const User = require("../models/user");
 const jwt = require("jsonwebtoken");
+const User = require("../models/user");
+
 const {
   badRequest,
   notFound,
@@ -21,9 +22,9 @@ const getUsers = (req, res) =>
     });
 
 const createUser = (req, res) => {
-  const { name, avatar, email, password } = req.body;
+  const { name, avatar, email, password: userPassword } = req.body;
 
-  if (!name || !avatar || !email || !password) {
+  if (!name || !avatar || !email || !userPassword) {
     return res.status(badRequest).send({ message: "All fields are required" });
   }
 
@@ -34,12 +35,14 @@ const createUser = (req, res) => {
           .status(alreadyExist)
           .send({ message: "Email already exists" });
       }
-      return User.create({ name, avatar, email, password });
+      return User.create({ name, avatar, email, password: userPassword });
     })
     .then((user) => {
-      const userData = user.toObject();
-      const { password, ...responseData } = userData;
-      return res.status(201).send(responseData);
+      if (user) {
+        const userData = user.toObject();
+        const { password, ...responseData } = userData;
+        return res.status(201).send(responseData);
+      }
     })
     .catch((err) => {
       if (res.headersSent) {
@@ -58,20 +61,22 @@ const createUser = (req, res) => {
 };
 
 const login = (req, res) => {
-  const { email, password } = req.body;
+  const { email, password: loginPassword } = req.body;
 
-  if (!email || !password) {
+  if (!email || !loginPassword) {
     return res
       .status(badRequest)
       .send({ message: "Email and password are required" });
   }
 
-  return User.findUserByCredentials(email, password)
+  return User.findUserByCredentials(email, loginPassword)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-        expiresIn: "7d",
-      });
-      return res.status(200).send({ token });
+      if (user) {
+        const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+          expiresIn: "7d",
+        });
+        return res.status(200).send({ token });
+      }
     })
     .catch((err) => {
       console.log(err);
@@ -105,7 +110,7 @@ const getUser = (req, res) => {
 const getCurrentUser = (req, res) => {
   const userId = req.user._id;
 
-  User.findById(userId)
+  return User.findById(userId)
     .orFail()
     .then((user) => res.status(200).send(user))
     .catch((err) => {
