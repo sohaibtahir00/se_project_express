@@ -9,13 +9,14 @@ const auth = (req, res, next) => {
     return res.status(unauthorized).send({ message: "Authorization required" });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, payload) => {
+  return jwt.verify(token, JWT_SECRET, (err, payload) => {
+    // Added return here
     if (err) {
       return res.status(unauthorized).send({ message: "Invalid token" });
     }
 
     req.user = payload;
-    return next();
+    next();
   });
 };
 
