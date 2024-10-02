@@ -22,7 +22,7 @@ const createUser = (req, res) => {
     return res.status(badRequest).send({ message: "All fields are required" });
   }
 
-  User.findOne({ email })
+  return User.findOne({ email }) // Added return for consistency
     .then((existingUser) => {
       if (existingUser) {
         return res
@@ -33,7 +33,7 @@ const createUser = (req, res) => {
     })
     .then((user) => {
       const { password, ...responseData } = user.toObject();
-      return res.status(201).send(responseData);
+      return res.status(201).send(responseData); // Added return for consistency
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
@@ -73,7 +73,7 @@ const getUser = (req, res) => {
 
   return User.findById(userId)
     .orFail(() => new Error("UserNotFound"))
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.status(200).send(user)) // Added return for consistency
     .catch((err) => {
       if (err.message === "UserNotFound") {
         return res.status(notFound).send({ message: "User not found" });
@@ -87,7 +87,7 @@ const getCurrentUser = (req, res) => {
 
   return User.findById(userId)
     .orFail(() => new Error("UserNotFound"))
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.status(200).send(user)) // Added return for consistency
     .catch((err) => {
       if (err.message === "UserNotFound") {
         return res.status(notFound).send({ message: "User not found" });
@@ -115,7 +115,7 @@ const updateUser = (req, res) => {
     runValidators: true,
   })
     .orFail(() => new Error("UserNotFound"))
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.status(200).send(user)) // Added return for consistency
     .catch((err) => {
       if (err.name === "ValidationError") {
         return res.status(badRequest).send({ message: "Validation error" });
