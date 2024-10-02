@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 const ClothingItem = require("../models/clothingItem");
-const { badRequest, notFound, internalServer } = require("../utils/errors");
+const {
+  badRequest,
+  notFound,
+  internalServer,
+  noPermission,
+} = require("../utils/errors");
 
 const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
@@ -41,16 +46,31 @@ const deleteItem = (req, res) => {
     return res.status(badRequest).send({ message: "Invalid item ID format" });
   }
 
-  return ClothingItem.findByIdAndDelete(itemId)
-    .orFail(new Error("ItemNotFound"))
-    .then((item) =>
-      res.status(200).send({ message: "Item deleted successfully", data: item })
-    )
-    .catch((err) => {
-      console.error(err);
-      if (err.message === "ItemNotFound") {
+  return ClothingItem.findById(itemId)
+    .then((item) => {
+      if (!item) {
         return res.status(notFound).send({ message: "Item not found" });
       }
+      if (item.owner.toString() !== req.user._id.toString()) {
+        return res
+          .status(noPermission)
+          .send({ message: "You do not have permission to delete this item" });
+      }
+      return ClothingItem.findByIdAndDelete(itemId)
+        .then(() =>
+          res
+            .status(200)
+            .send({ message: "Item deleted successfully", data: item })
+        )
+        .catch((err) => {
+          console.error(err);
+          return res
+            .status(internalServer)
+            .send({ message: "An error has occurred on the server" });
+        });
+    })
+    .catch((err) => {
+      console.error(err);
       return res
         .status(internalServer)
         .send({ message: "An error has occurred on the server" });

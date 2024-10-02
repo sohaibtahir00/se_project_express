@@ -1,6 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
 const routes = require("./routes");
+const { login, createUser } = require("./controllers/users");
+const auth = require("./middlewares/auth");
 
 const app = express();
 
@@ -14,16 +17,14 @@ mongoose
   })
   .catch(console.error);
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: "5d8b8592978f8bd833ca8133",
-  };
-  next();
-});
-
 app.use(express.json());
 
+app.post("/signin", login);
+app.post("/signup", createUser);
+
+app.use(auth);
 app.use(routes);
+app.use(cors());
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
