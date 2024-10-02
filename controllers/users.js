@@ -43,6 +43,7 @@ const createUser = (req, res) => {
         const { password, ...responseData } = userData;
         return res.status(201).send(responseData);
       }
+      return;
     })
     .catch((err) => {
       if (res.headersSent) {
@@ -77,6 +78,7 @@ const login = (req, res) => {
         });
         return res.status(200).send({ token });
       }
+      return;
     })
     .catch((err) => {
       console.log(err);
@@ -104,6 +106,7 @@ const getUser = (req, res) => {
       return res
         .status(internalServer)
         .send({ message: "An error has occurred on the server" });
+      return;
     });
 };
 
