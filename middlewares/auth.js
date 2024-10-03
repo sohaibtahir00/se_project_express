@@ -3,11 +3,13 @@ const { JWT_SECRET } = require("../utils/config");
 const { unauthorized } = require("../utils/errors");
 
 const auth = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1] || req.cookies.jwt;
+  const authHeader = req.headers.authorization;
 
-  if (!token) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(unauthorized).send({ message: "Authorization required" });
   }
+
+  const token = authHeader.split(" ")[1];
 
   return jwt.verify(token, JWT_SECRET, (err, payload) => {
     if (err) {

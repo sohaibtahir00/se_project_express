@@ -2,7 +2,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const routes = require("./routes");
-const { login, createUser } = require("./controllers/users");
 const auth = require("./middlewares/auth");
 
 const app = express();
@@ -18,13 +17,11 @@ mongoose
   .catch(console.error);
 
 app.use(express.json());
+app.use(cors());
 
-app.post("/signin", login);
-app.post("/signup", createUser);
+app.use(routes);
 
 app.use(auth);
-app.use(routes);
-app.use(cors());
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

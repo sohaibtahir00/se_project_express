@@ -28,12 +28,6 @@ const getItems = (req, res) =>
     .then((items) => res.status(200).send(items))
     .catch((err) => {
       console.error(err);
-      if (err.name === "CastError") {
-        return res.status(badRequest).send({ message: "Invalid ID format" });
-      }
-      if (err.message === "ItemNotFound") {
-        return res.status(notFound).send({ message: "Item not found" });
-      }
       return res
         .status(internalServer)
         .send({ message: "An error has occurred on the server" });

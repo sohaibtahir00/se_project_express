@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
@@ -11,16 +10,6 @@ const {
 } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
 
-const getUsers = (req, res) =>
-  User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch((err) => {
-      console.log(err);
-      return res
-        .status(internalServer)
-        .send({ message: "An error has occurred on the server" });
-    });
-
 const createUser = (req, res) => {
   const { name, avatar, email, password: userPassword } = req.body;
 
@@ -28,7 +17,7 @@ const createUser = (req, res) => {
     return res.status(badRequest).send({ message: "All fields are required" });
   }
 
-  User.findOne({ email })
+  return User.findOne({ email })
     .then((existingUser) => {
       if (existingUser) {
         return res
@@ -41,13 +30,13 @@ const createUser = (req, res) => {
       if (user) {
         const userData = user.toObject();
         const { password, ...responseData } = userData;
-        res.status(201).send(responseData);
+        return res.status(201).send(responseData); // Ensure return here
       }
+      return null; // Make sure this returns something even if user is null
     })
     .catch((err) => {
       if (res.headersSent) {
-        console.error("Headers already sent, can't send another response.");
-        return;
+        return null; // return here to avoid sending multiple responses
       }
 
       if (err.name === "ValidationError") {
@@ -74,31 +63,15 @@ const login = (req, res) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      return res.status(200).send({ token });
+      return res.status(200).send({ token }); // Ensure return here
     })
     .catch((err) => {
-      console.log(err);
-      return res
-        .status(unauthorized)
-        .send({ message: "Invalid email or password" });
-    });
-};
-
-const getUser = (req, res) => {
-  const { userId } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(badRequest).send({ message: "Invalid user ID format" });
-  }
-
-  return User.findById(userId)
-    .orFail()
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      console.log(err);
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(notFound).send({ message: "User not found" });
+      if (err.message === "Invalid email or password") {
+        return res
+          .status(unauthorized)
+          .send({ message: "Invalid email or password" });
       }
+
       return res
         .status(internalServer)
         .send({ message: "An error has occurred on the server" });
@@ -110,9 +83,8 @@ const getCurrentUser = (req, res) => {
 
   return User.findById(userId)
     .orFail()
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.status(200).send(user)) // Ensure return here
     .catch((err) => {
-      console.log(err);
       if (err.name === "DocumentNotFoundError") {
         return res.status(notFound).send({ message: "User not found" });
       }
@@ -141,9 +113,8 @@ const updateUser = (req, res) => {
     runValidators: true,
   })
     .orFail()
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.status(200).send(user)) // Ensure return here
     .catch((err) => {
-      console.log(err);
       if (err.name === "ValidationError") {
         return res.status(badRequest).send({ message: "Validation error" });
       }
@@ -157,10 +128,8 @@ const updateUser = (req, res) => {
 };
 
 module.exports = {
-  getUsers,
   createUser,
   login,
-  getUser,
   getCurrentUser,
   updateUser,
 };
