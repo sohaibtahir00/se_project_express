@@ -30,13 +30,13 @@ const createUser = (req, res) => {
       if (user) {
         const userData = user.toObject();
         const { password, ...responseData } = userData;
-        return res.status(201).send(responseData); // Ensure return here
+        return res.status(201).send(responseData);
       }
-      return null; // Make sure this returns something even if user is null
+      return null;
     })
     .catch((err) => {
       if (res.headersSent) {
-        return null; // return here to avoid sending multiple responses
+        return null;
       }
 
       if (err.name === "ValidationError") {
@@ -63,7 +63,7 @@ const login = (req, res) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      return res.status(200).send({ token }); // Ensure return here
+      return res.status(200).send({ token });
     })
     .catch((err) => {
       if (err.message === "Invalid email or password") {
@@ -83,7 +83,7 @@ const getCurrentUser = (req, res) => {
 
   return User.findById(userId)
     .orFail()
-    .then((user) => res.status(200).send(user)) // Ensure return here
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(notFound).send({ message: "User not found" });
@@ -113,7 +113,7 @@ const updateUser = (req, res) => {
     runValidators: true,
   })
     .orFail()
-    .then((user) => res.status(200).send(user)) // Ensure return here
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === "ValidationError") {
         return res.status(badRequest).send({ message: "Validation error" });
