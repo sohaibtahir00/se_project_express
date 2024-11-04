@@ -1,54 +1,46 @@
 const mongoose = require("mongoose");
 const ClothingItem = require("../models/clothingItem");
 const {
-  badRequest,
-  notFound,
-  internalServer,
-  noPermission,
+  BadRequestError,
+  NotFoundError,
+  ForbiddenError,
 } = require("../utils/errors");
 
-const createItem = (req, res) => {
+const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
 
   return ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
-      console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(badRequest).send({ message: "Validation error" });
+        next(new BadRequestError("Validation error"));
+      } else {
+        next(err);
       }
-      return res
-        .status(internalServer)
-        .send({ message: "An error has occurred on the server" });
     });
 };
 
-const getItems = (req, res) =>
+const getItems = (req, res, next) =>
   ClothingItem.find({})
     .then((items) => res.status(200).send(items))
-    .catch((err) => {
-      console.error(err);
-      return res
-        .status(internalServer)
-        .send({ message: "An error has occurred on the server" });
-    });
+    .catch(next);
 
-const deleteItem = (req, res) => {
+const deleteItem = (req, res, next) => {
   const { id: itemId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(itemId)) {
-    return res.status(badRequest).send({ message: "Invalid item ID format" });
+    return next(new BadRequestError("Invalid item ID format"));
   }
 
   return ClothingItem.findById(itemId)
     .then((item) => {
       if (!item) {
-        return res.status(notFound).send({ message: "Item not found" });
+        return next(new NotFoundError("Item not found"));
       }
       if (item.owner.toString() !== req.user._id.toString()) {
-        return res
-          .status(noPermission)
-          .send({ message: "You do not have permission to delete this item" });
+        return next(
+          new ForbiddenError("You do not have permission to delete this item")
+        );
       }
       return ClothingItem.findByIdAndDelete(itemId)
         .then(() =>
@@ -56,26 +48,16 @@ const deleteItem = (req, res) => {
             .status(200)
             .send({ message: "Item deleted successfully", data: item })
         )
-        .catch((err) => {
-          console.error(err);
-          return res
-            .status(internalServer)
-            .send({ message: "An error has occurred on the server" });
-        });
+        .catch(next);
     })
-    .catch((err) => {
-      console.error(err);
-      return res
-        .status(internalServer)
-        .send({ message: "An error has occurred on the server" });
-    });
+    .catch(next);
 };
 
-const likeItem = (req, res) => {
+const likeItem = (req, res, next) => {
   const { itemId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(itemId)) {
-    return res.status(badRequest).send({ message: "Invalid item ID format" });
+    return next(new BadRequestError("Invalid item ID format"));
   }
 
   return ClothingItem.findByIdAndUpdate(
@@ -83,24 +65,16 @@ const likeItem = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
-    .orFail()
+    .orFail(() => new NotFoundError("Item not found"))
     .then((item) => res.status(200).send({ data: item }))
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(notFound).send({ message: "Item not found" });
-      }
-      return res
-        .status(internalServer)
-        .send({ message: "An error has occurred on the server" });
-    });
+    .catch(next);
 };
 
-const dislikeItem = (req, res) => {
+const dislikeItem = (req, res, next) => {
   const { itemId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(itemId)) {
-    return res.status(badRequest).send({ message: "Invalid item ID format" });
+    return next(new BadRequestError("Invalid item ID format"));
   }
 
   return ClothingItem.findByIdAndUpdate(
@@ -108,17 +82,9 @@ const dislikeItem = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true }
   )
-    .orFail()
+    .orFail(() => new NotFoundError("Item not found"))
     .then((item) => res.status(200).send({ data: item }))
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(notFound).send({ message: "Item not found" });
-      }
-      return res
-        .status(internalServer)
-        .send({ message: "An error has occurred on the server" });
-    });
+    .catch(next);
 };
 
 module.exports = {

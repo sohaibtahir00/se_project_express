@@ -1,15 +1,42 @@
-const badRequest = 400;
-const notFound = 404;
-const internalServer = 500;
-const unauthorized = 401;
-const noPermission = 403;
-const alreadyExist = 409;
+class BadRequestError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 400;
+  }
+}
+
+class UnauthorizedError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 401;
+  }
+}
+
+class ForbiddenError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 403;
+  }
+}
+
+class NotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 404;
+  }
+}
+
+class ConflictError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 409;
+  }
+}
 
 module.exports = {
-  badRequest,
-  notFound,
-  internalServer,
-  unauthorized,
-  noPermission,
-  alreadyExist,
+  BadRequestError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  ConflictError,
 };

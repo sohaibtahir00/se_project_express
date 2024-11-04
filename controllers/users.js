@@ -1,28 +1,24 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-
 const {
-  badRequest,
-  notFound,
-  internalServer,
-  unauthorized,
-  alreadyExist,
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+  ConflictError,
 } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, avatar, email, password: userPassword } = req.body;
 
   if (!name || !avatar || !email || !userPassword) {
-    return res.status(badRequest).send({ message: "All fields are required" });
+    return next(new BadRequestError("All fields are required"));
   }
 
   return User.findOne({ email })
     .then((existingUser) => {
       if (existingUser) {
-        return res
-          .status(alreadyExist)
-          .send({ message: "Email already exists" });
+        return next(new ConflictError("Email already exists"));
       }
       return User.create({ name, avatar, email, password: userPassword });
     })
@@ -35,27 +31,19 @@ const createUser = (req, res) => {
       return null;
     })
     .catch((err) => {
-      if (res.headersSent) {
-        return null;
-      }
-
       if (err.name === "ValidationError") {
-        return res.status(badRequest).send({ message: "Validation error" });
+        next(new BadRequestError("Validation error"));
+      } else {
+        next(err);
       }
-
-      return res
-        .status(internalServer)
-        .send({ message: "Internal server error" });
     });
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password: loginPassword } = req.body;
 
   if (!email || !loginPassword) {
-    return res
-      .status(badRequest)
-      .send({ message: "Email and password are required" });
+    return next(new BadRequestError("Email and password are required"));
   }
 
   return User.findUserByCredentials(email, loginPassword)
@@ -67,41 +55,27 @@ const login = (req, res) => {
     })
     .catch((err) => {
       if (err.message === "Invalid email or password") {
-        return res
-          .status(unauthorized)
-          .send({ message: "Invalid email or password" });
+        return next(new UnauthorizedError("Invalid email or password"));
       }
-
-      return res
-        .status(internalServer)
-        .send({ message: "An error has occurred on the server" });
+      next(err);
     });
 };
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   const userId = req.user._id;
 
   return User.findById(userId)
-    .orFail()
+    .orFail(() => new NotFoundError("User not found"))
     .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(notFound).send({ message: "User not found" });
-      }
-      return res
-        .status(internalServer)
-        .send({ message: "An error has occurred on the server" });
-    });
+    .catch(next);
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, avatar } = req.body;
   const userId = req.user._id;
 
   if (!name && !avatar) {
-    return res
-      .status(badRequest)
-      .send({ message: "At least one field must be provided" });
+    return next(new BadRequestError("At least one field must be provided"));
   }
 
   const updateFields = {};
@@ -112,18 +86,13 @@ const updateUser = (req, res) => {
     new: true,
     runValidators: true,
   })
-    .orFail()
+    .orFail(() => new NotFoundError("User not found"))
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res.status(badRequest).send({ message: "Validation error" });
+        return next(new BadRequestError("Validation error"));
       }
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(notFound).send({ message: "User not found" });
-      }
-      return res
-        .status(internalServer)
-        .send({ message: "An error has occurred on the server" });
+      next(err);
     });
 };
 
