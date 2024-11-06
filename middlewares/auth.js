@@ -11,13 +11,13 @@ const auth = (req, res, next) => {
 
   const token = authHeader.split(" ")[1];
 
-  jwt.verify(token, JWT_SECRET, (err, payload) => {
+  return jwt.verify(token, JWT_SECRET, (err, payload) => {
     if (err) {
       return next(new UnauthorizedError("Invalid token"));
     }
 
     req.user = payload;
-    next();
+    return next();
   });
 };
 
