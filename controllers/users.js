@@ -2,16 +2,16 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const {
   BadRequestError,
-  NotFoundError,
   UnauthorizedError,
+  NotFoundError,
   ConflictError,
-} = require("../utils/errors");
+} = require("../utils/errors/index");
 const { JWT_SECRET } = require("../utils/config");
 
 const createUser = (req, res, next) => {
-  const { name, avatar, email, password: userPassword } = req.body;
+  const { name, avatar, email } = req.body;
 
-  if (!name || !avatar || !email || !userPassword) {
+  if (!name || !avatar || !email || !req.body.password) {
     return next(new BadRequestError("All fields are required"));
   }
 
@@ -20,33 +20,31 @@ const createUser = (req, res, next) => {
       if (existingUser) {
         return next(new ConflictError("Email already exists"));
       }
-      return User.create({ name, avatar, email, password: userPassword });
+      return User.create({ name, avatar, email, password: req.body.password });
     })
     .then((user) => {
       if (user) {
-        const userData = user.toObject();
-        const { password, ...responseData } = userData;
+        const responseData = user.toObject();
         return res.status(201).send(responseData);
       }
       return null;
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        next(new BadRequestError("Validation error"));
-      } else {
-        next(err);
+        return next(new BadRequestError("Validation error"));
       }
+      return next(err);
     });
 };
 
 const login = (req, res, next) => {
-  const { email, password: loginPassword } = req.body;
+  const { email, password } = req.body;
 
-  if (!email || !loginPassword) {
+  if (!email || !password) {
     return next(new BadRequestError("Email and password are required"));
   }
 
-  return User.findUserByCredentials(email, loginPassword)
+  return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
@@ -57,7 +55,7 @@ const login = (req, res, next) => {
       if (err.message === "Invalid email or password") {
         return next(new UnauthorizedError("Invalid email or password"));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -92,7 +90,7 @@ const updateUser = (req, res, next) => {
       if (err.name === "ValidationError") {
         return next(new BadRequestError("Validation error"));
       }
-      next(err);
+      return next(err);
     });
 };
 

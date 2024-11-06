@@ -17,7 +17,9 @@ mongoose
   .then(() => {
     console.log("Connected to DataBase");
   })
-  .catch(console.error);
+  .catch((error) => {
+    console.error("Database connection error:", error);
+  });
 
 app.get("/crash-test", () => {
   setTimeout(() => {

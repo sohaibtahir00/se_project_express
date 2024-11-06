@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 const ClothingItem = require("../models/clothingItem");
 const {
   BadRequestError,
-  NotFoundError,
   ForbiddenError,
-} = require("../utils/errors");
+  NotFoundError,
+} = require("../utils/errors/index");
 
 const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
