@@ -1,14 +1,13 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
 const { errors } = require("celebrate");
 const routes = require("./routes");
 const errorHandler = require("./middlewares/error-handler");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
 
 const app = express();
-
 const { PORT = 3001 } = process.env;
 
 mongoose.set("strictQuery", true);
@@ -17,9 +16,7 @@ mongoose
   .then(() => {
     console.log("Connected to DataBase");
   })
-  .catch((error) => {
-    console.error("Database connection error:", error);
-  });
+  .catch(console.error);
 
 app.get("/crash-test", () => {
   setTimeout(() => {

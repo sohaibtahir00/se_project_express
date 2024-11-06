@@ -11,7 +11,7 @@ const auth = (req, res, next) => {
 
   const token = authHeader.split(" ")[1];
 
-  return jwt.verify(token, JWT_SECRET, (err, payload) => {
+  jwt.verify(token, JWT_SECRET, (err, payload) => {
     if (err) {
       return next(new UnauthorizedError("Invalid token"));
     }
