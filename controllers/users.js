@@ -11,6 +11,7 @@ const { JWT_SECRET } = require("../utils/config");
 const createUser = (req, res, next) => {
   const { name, avatar, email } = req.body;
 
+  // Check if all fields are provided
   if (!name || !avatar || !email || !req.body.password) {
     return next(new BadRequestError("All fields are required"));
   }
@@ -24,7 +25,8 @@ const createUser = (req, res, next) => {
     })
     .then((user) => {
       if (user) {
-        const { password, ...responseData } = user.toObject();
+        const responseData = user.toObject();
+        delete responseData.password;
         return res.status(201).send(responseData);
       }
       return null;
