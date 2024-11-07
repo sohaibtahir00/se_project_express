@@ -11,7 +11,7 @@ const {
 } = require("../controllers/clothingItems");
 
 const itemSchema = Joi.object({
-  name: Joi.string().required(),
+  name: Joi.string().min(2).max(30).required(),
   weather: Joi.string().valid("hot", "warm", "cold").required(),
   imageUrl: Joi.string().uri().required(),
 });

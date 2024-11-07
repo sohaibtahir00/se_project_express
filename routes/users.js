@@ -7,11 +7,6 @@ const updateUserSchema = Joi.object({
   avatar: Joi.string().uri().optional(),
 });
 
-const loginSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().required(),
-});
-
 router.get("/me", getCurrentUser);
 
 router.patch(
@@ -20,14 +15,6 @@ router.patch(
     [Segments.BODY]: updateUserSchema,
   }),
   updateUser
-);
-
-router.post(
-  "/signin",
-  celebrate({
-    [Segments.BODY]: loginSchema,
-  }),
-  login
 );
 
 module.exports = router;

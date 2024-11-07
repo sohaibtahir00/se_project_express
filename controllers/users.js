@@ -24,7 +24,7 @@ const createUser = (req, res, next) => {
     })
     .then((user) => {
       if (user) {
-        const responseData = user.toObject();
+        const { password, ...responseData } = user.toObject();
         return res.status(201).send(responseData);
       }
       return null;
