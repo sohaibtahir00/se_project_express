@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const { celebrate, Joi, Segments } = require("celebrate");
-const { getCurrentUser, updateUser, login } = require("../controllers/users");
+const { getCurrentUser, updateUser } = require("../controllers/users");
 
 const updateUserSchema = Joi.object({
   name: Joi.string().min(2).max(30).optional(),
